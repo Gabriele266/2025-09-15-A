@@ -26,7 +26,7 @@ class DAO():
     @staticmethod
     def getAllPilotsInPeriod(min_year: int, max_year: int)-> list[Pilot]:
         query = """
-        SELECT RE.driverId, COUNT(*) as numero_gare, DV.driverRef 
+        SELECT RE.driverId, COUNT(*) as numero_gare, DV.driverRef , DV.dob
         FROM results RE, drivers DV, races RS
             WHERE RE.raceId = RS.raceId AND 
             RE.driverId = DV.driverId AND
@@ -42,7 +42,7 @@ class DAO():
 
         p = []
         for row in cursor:
-            p.append(Pilot(row["driverId"], row["driverRef"]))
+            p.append(Pilot(row["driverId"], row["driverRef"], row["dob"]))
 
         cursor.close()
         connection.close()

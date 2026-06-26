@@ -58,3 +58,8 @@ class View(ft.UserControl):
 
     def update_page(self):
         self._page.update()
+
+    def create_alert(self, message: str):
+        self._page.show_dialog(ft.AlertDialog(
+            title=ft.Text(message)
+        ))

@@ -1,9 +1,11 @@
+from datetime import datetime
 from dataclasses import dataclass
 
 @dataclass
 class Pilot:
     id: int
     name: str
+    dob: datetime
 
     def __hash__(self):
         return hash(self.id)
@@ -12,4 +14,4 @@ class Pilot:
         return self.id == other.id
 
     def __str__(self):
-        return f"{self.name}, id {self.id}"
+        return f"{self.name}, data di nascita {self.dob}"
