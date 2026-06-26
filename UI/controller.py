@@ -1,3 +1,5 @@
+import time
+
 import flet as ft
 import networkx as nx
 
@@ -60,14 +62,42 @@ class Controller:
             ft.Text(f"{start.name} -> {end.name} con peso {data["weight"]}")
         )
 
-        txt_result.controls.append(ft.Text(f"Numero di componenti connesse: {nx.number_connected_components(self._model.graph)}"))
+        txt_result.controls.append(ft.Text(f"\nNumero di componenti connesse: {nx.number_connected_components(self._model.graph)}", size=20, color="red"))
         nds = self._model.get_biggest_connected_component_nodes()
-        txt_result.controls.append(ft.Text(f"La componente connessa più grande ha {len(nds)} nodi"))
+        txt_result.controls.append(ft.Text(f"La componente connessa più grande ha {len(nds)} nodi", size=18, color="red"))
         for node in nds:
             txt_result.controls.append(ft.Text(node.__str__()))
 
         self._view.update_page()
 
     def handleCerca(self, e):
-        pass
+        if self._model.graph is None:
+            self._view.create_alert("Il grafo non è stato creato")
+            return
 
+        v = self._view._txtInK.value
+        if v is None or v == '':
+            self._view.create_alert("Selezionare un valore per K")
+            return
+
+        # Prendo tutte le n componenti connesse
+        # Ho un insieme massimo di K piloti
+        # Prendo un pilota da ogni componente connessa, esplorando tutte le combinazioni
+        t1 = time.time()
+        res = self._model.search_best_set(int(v))
+        t2 = time.time()
+
+        txt_result: ft.ListView = self._view.txt_result
+
+        if res is not None and res != []:
+            txt_result.controls.append(ft.Text("\nHo trovato una soluzione", color="red", size=22))
+            txt_result.controls.append(ft.Text(f"Tempo impiegato {t2 - t1} secondi", color="gray", size=17))
+
+            for node in res:
+                txt_result.controls.append(ft.Text(node))
+
+            txt_result.controls.append(ft.Text(f"Con differenza di età {self._model.best_dob.days / 365} anni"))
+        else:
+            txt_result.controls.append(ft.Text("La soluzione non esiste, il problema è impossibile. Controllare il numero di componenti connesse. "))
+
+        self._view.update_page()
