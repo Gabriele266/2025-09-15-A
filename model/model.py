@@ -56,14 +56,16 @@ class Model:
         return self.best_set
 
     def __pescaggio_comp(self, indice_comp: int, num_conn_comps: int, visited: list[Pilot], K: int, conn_comps: list[set[Pilot]]):
-        if len(visited) == K:
+        k_piccolo = len(visited)
+        if k_piccolo == K:
             # Condizione di termine con verifica dell'ottimalità
             diff = ((max(visited, key=lambda p: p.dob).dob) - (min(visited, key=lambda p: p.dob).dob)).days
 
             if self.min_diff_dob is None or diff < self.min_diff_dob:
                 self.min_diff_dob = diff
                 self.best_set = visited.copy()
-        elif indice_comp < num_conn_comps:
+        elif indice_comp < num_conn_comps and k_piccolo <= abs(indice_comp  - num_conn_comps):      # Verifico subito che esplorando questo ramo, si possa arrivare ad una soluzione.
+            # Se il secondo controllo fallisce significa che non ci sono abbastanza componenti connesse rimanenti per arrivare ad una soluzione ammissibile
             # Posso esplorare una nuova componente
             current_component = conn_comps[indice_comp]
             for pilot in current_component:
