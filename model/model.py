@@ -10,7 +10,7 @@ class Model:
     def __init__(self):
         self.graph: nx.Graph | None = None
         self.id_map = {}
-        self.best_dob = None
+        self.min_diff_dob = None
         self.best_set = None
 
     def create_graph(self, min, max):
@@ -38,36 +38,38 @@ class Model:
         all_nodes = sorted(sub_graph.nodes, key=lambda node: self.graph.degree(node))
         return all_nodes
 
-    def search_best_set(self, k) -> list[Pilot]:
-        connected_comps = sorted(nx.connected_components(self.graph), key=len)
+    def search_best_set(self, K: int) -> list[Pilot] | None:
+        if K <= 0:
+            return None
 
-        if len(connected_comps) < k:
-            return []       # Problema impossibile
+        conn_comps = sorted(nx.connected_components(self.graph), key=len)
+        num_comps = len(conn_comps)
 
-        all_pilots = self.graph.nodes
+        if K > num_comps:
+            return None
 
-        for combination in itertools.combinations(all_pilots, k):
-            if self.check_comb(combination, connected_comps) == True:   # La combinazione ha tutti elementi in componenti connesse distinte
-                so = sorted(combination, key=lambda node: node.dob)
-                min_dob = so[0].dob
-                max_dob = so[-1].dob
-                diff = max_dob - min_dob
+        self.best_set = None
+        self.min_diff_dob = None
+        visited = []
 
-                if self.best_dob is None or diff < self.best_dob:
-                    self.best_dob = diff
-                    self.best_set = so.copy()
-
+        self.__pescaggio_comp(0, num_comps, visited, K, conn_comps)
         return self.best_set
 
-    def check_comb(self, comb, connected_comps):
-        for c in comb:
-            occurrencies = 0
-            for component in connected_comps:
-                for node in component:
-                    if c == node:
-                        occurrencies += 1
+    def __pescaggio_comp(self, indice_comp: int, num_conn_comps: int, visited: list[Pilot], K: int, conn_comps: list[set[Pilot]]):
+        if len(visited) == K:
+            # Condizione di termine con verifica dell'ottimalità
+            diff = ((max(visited, key=lambda p: p.dob).dob) - (min(visited, key=lambda p: p.dob).dob)).days
 
-            if occurrencies > 1:
-                return False        # Ho trovato un nodo che è presente in più componenti connesse
+            if self.min_diff_dob is None or diff < self.min_diff_dob:
+                self.min_diff_dob = diff
+                self.best_set = visited.copy()
+        elif indice_comp < num_conn_comps:
+            # Posso esplorare una nuova componente
+            current_component = conn_comps[indice_comp]
+            for pilot in current_component:
+                visited.append(pilot)
+                self.__pescaggio_comp(indice_comp + 1, num_conn_comps, visited, K, conn_comps)
+                visited.pop()
 
-        return True
+            # Branch non utilizzare la componente
+            self.__pescaggio_comp(indice_comp + 1, num_conn_comps, visited, K, conn_comps)

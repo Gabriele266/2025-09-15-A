@@ -96,7 +96,7 @@ class Controller:
             for node in res:
                 txt_result.controls.append(ft.Text(node))
 
-            txt_result.controls.append(ft.Text(f"Con differenza di età {self._model.best_dob.days / 365} anni"))
+            txt_result.controls.append(ft.Text(f"Con differenza di età {self._model.min_diff_dob / 365} anni"))
         else:
             txt_result.controls.append(ft.Text("La soluzione non esiste, il problema è impossibile. Controllare il numero di componenti connesse. "))
 
